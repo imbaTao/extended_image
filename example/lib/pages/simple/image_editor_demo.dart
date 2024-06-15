@@ -15,6 +15,16 @@ import 'package:oktoast/oktoast.dart';
     'order': 6,
   },
 )
+
+
+
+
+
+
+
+
+
+// Container(width: 300,height: 600,child: DxUploadAvatarSelector(),)
 class SimpleImageEditor extends StatefulWidget {
   @override
   _SimpleImageEditorState createState() => _SimpleImageEditorState();
@@ -31,26 +41,7 @@ class _SimpleImageEditorState extends State<SimpleImageEditor> {
       appBar: AppBar(
         title: const Text('ImageEditor'),
       ),
-      body: ExtendedImage.asset(
-        'assets/image.jpg',
-        fit: BoxFit.contain,
-        mode: ExtendedImageMode.editor,
-        enableLoadState: true,
-        extendedImageEditorKey: editorKey,
-        cacheRawData: true,
-        //maxBytes: 1024 * 50,
-        initEditorConfigHandler: (ExtendedImageState? state) {
-          return EditorConfig(
-              maxScale: 4.0,
-              cropRectPadding: const EdgeInsets.all(20.0),
-              hitTestSize: 20.0,
-              initCropRectType: InitCropRectType.imageRect,
-              cropAspectRatio: CropAspectRatios.ratio4_3,
-              editActionDetailsIsChanged: (EditActionDetails? details) {
-                //print(details?.totalScale);
-              });
-        },
-      ),
+      body: Container(),
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.crop),
           onPressed: () {
@@ -76,4 +67,5 @@ class _SimpleImageEditorState extends State<SimpleImageEditor> {
       _cropping = false;
     }
   }
+
 }

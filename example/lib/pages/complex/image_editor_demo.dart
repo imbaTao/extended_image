@@ -12,6 +12,110 @@ import 'package:flutter/material.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+
+
+
+
+/*
+ 业务组件
+ 相册选择器
+ 一般能结合七牛使用
+ */
+class DxUploadAvatarSelector  extends StatefulWidget {
+  const DxUploadAvatarSelector({super.key, required this.editorKey});
+
+  final GlobalKey<ExtendedImageEditorState> editorKey;
+
+  @override
+  State<StatefulWidget> createState() => _DxUploadAvatarSelectorState(editorKey);
+}
+
+class _DxUploadAvatarSelectorState extends State<DxUploadAvatarSelector> {
+  _DxUploadAvatarSelectorState(this.editorKey);
+
+  final GlobalKey<ExtendedImageEditorState> editorKey;
+  Uint8List? imageBytes;
+
+  @override
+  Widget build(BuildContext context) {
+    return ExtendedImage.asset(
+      'assets/image.jpg',
+      fit: BoxFit.contain,
+      mode: ExtendedImageMode.editor,
+      enableLoadState: true,
+      cacheRawData: true,
+      // maxBytes: 1024 * 10, // 最大图片尺寸
+      extendedImageEditorKey: editorKey,
+      initEditorConfigHandler: (ExtendedImageState? state) {
+        return EditorConfig(
+
+            editorMaskColorHandler: (BuildContext context, bool pointerDown) {
+              return Colors.black
+                  .withOpacity(pointerDown ? 0.2 : 0.4);
+            },
+            cornerSize: const Size(30,3),
+            lineHeight: 0.5,
+            cornerColor: Colors.white,
+            maxScale: 3.0,
+            cropRectPadding: const EdgeInsets.all(20.0),
+            hitTestSize: 0.0,
+            initCropRectType: InitCropRectType.imageRect,
+            initialCropAspectRatio: CropAspectRatios.ratio1_1,
+            cropAspectRatio: CropAspectRatios.ratio1_1,
+            editActionDetailsIsChanged: (EditActionDetails? details) {
+              //print(details?.totalScale);
+            });
+      },
+    );
+  }
+
+
+  Widget listenData() {
+    if (imageBytes != null) {
+      return Image.memory(imageBytes!);
+    }else {
+      return Container();
+    }
+  }
+
+
+  Future<void> confirmAction() async {
+    try {
+
+      final EditImageInfo fileData = await cropImageDataWithNativeLibrary(
+          state: editorKey.currentState!);
+
+
+      setState(() {
+        imageBytes = fileData.data;
+      });
+      // final String? fileFath = await ImageSaver.save()
+      // 'extended_image_cropped_image.jpg', fileData.data!);
+      // showToast('save image : $fileFath');
+
+
+
+    } finally {
+
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ///
 ///  create by zmtzawqlp on 2019/8/22
 ///
@@ -78,44 +182,9 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
         ],
       ),
       body: Column(children: <Widget>[
+        Expanded(child: imageBytes == null ? Container() : Image.memory(imageBytes!)),
         Expanded(
-          child: _memoryImage != null
-              ? ExtendedImage.memory(
-                  _memoryImage!,
-                  fit: BoxFit.contain,
-                  mode: ExtendedImageMode.editor,
-                  enableLoadState: true,
-                  extendedImageEditorKey: editorKey,
-                  initEditorConfigHandler: (ExtendedImageState? state) {
-                    return EditorConfig(
-                      maxScale: 8.0,
-                      cropRectPadding: const EdgeInsets.all(20.0),
-                      hitTestSize: 20.0,
-                      cropLayerPainter: _cropLayerPainter!,
-                      initCropRectType: InitCropRectType.imageRect,
-                      cropAspectRatio: _aspectRatio!.value,
-                    );
-                  },
-                  cacheRawData: true,
-                )
-              : ExtendedImage.asset(
-                  'assets/image.jpg',
-                  fit: BoxFit.contain,
-                  mode: ExtendedImageMode.editor,
-                  enableLoadState: true,
-                  extendedImageEditorKey: editorKey,
-                  initEditorConfigHandler: (ExtendedImageState? state) {
-                    return EditorConfig(
-                      maxScale: 8.0,
-                      cropRectPadding: const EdgeInsets.all(20.0),
-                      hitTestSize: 20.0,
-                      cropLayerPainter: _cropLayerPainter!,
-                      initCropRectType: InitCropRectType.imageRect,
-                      cropAspectRatio: _aspectRatio!.value,
-                    );
-                  },
-                  cacheRawData: true,
-                ),
+          child: DxUploadAvatarSelector(editorKey: editorKey),
         ),
       ]),
       bottomNavigationBar: BottomAppBar(
@@ -136,43 +205,48 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
                 ),
                 textColor: Colors.white,
                 onPressed: () {
-                  showDialog<void>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Column(
-                          children: <Widget>[
-                            const Expanded(
-                              child: SizedBox(),
-                            ),
-                            SizedBox(
-                              height: 100,
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.all(20.0),
-                                itemBuilder: (_, int index) {
-                                  final AspectRatioItem item =
-                                      _aspectRatios[index];
-                                  return GestureDetector(
-                                    child: AspectRatioWidget(
-                                      aspectRatio: item.value,
-                                      aspectRatioS: item.text,
-                                      isSelected: item == _aspectRatio,
-                                    ),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      setState(() {
-                                        _aspectRatio = item;
-                                      });
-                                    },
-                                  );
-                                },
-                                itemCount: _aspectRatios.length,
-                              ),
-                            ),
-                          ],
-                        );
-                      });
+                  confirmAction();
+                //   showDialog<void>(
+                //       context: context,
+                //       builder: (BuildContext context) {
+                //         return Column(
+                //           children: <Widget>[
+                //             const Expanded(
+                //               child: SizedBox(),
+                //             ),
+                //             SizedBox(
+                //               height: 100,
+                //               child: ListView.builder(
+                //                 shrinkWrap: true,
+                //                 scrollDirection: Axis.horizontal,
+                //                 padding: const EdgeInsets.all(20.0),
+                //                 itemBuilder: (_, int index) {
+                //                   final AspectRatioItem item =
+                //                       _aspectRatios[index];
+                //                   return GestureDetector(
+                //                     child: AspectRatioWidget(
+                //                       aspectRatio: item.value,
+                //                       aspectRatioS: item.text,
+                //                       isSelected: item == _aspectRatio,
+                //                     ),
+                //                     onTap: () {
+                //                       // Navigator.pop(context);
+                //
+                //                       confirmAction();
+                //
+                //
+                //                       setState(() {
+                //                         _aspectRatio = item;
+                //                       });
+                //                     },
+                //                   );
+                //                 },
+                //                 itemCount: _aspectRatios.length,
+                //               ),
+                //             ),
+                //           ],
+                //         );
+                //       });
                 },
               ),
               FlatButtonWithIcon(
@@ -208,100 +282,123 @@ class _ImageEditorDemoState extends State<ImageEditorDemo> {
                   editorKey.currentState!.rotate(right: true);
                 },
               ),
-              FlatButtonWithIcon(
-                icon: const Icon(Icons.rounded_corner_sharp),
-                label: PopupMenuButton<EditorCropLayerPainter>(
-                  key: popupMenuKey,
-                  enabled: false,
-                  offset: const Offset(100, -300),
-                  child: const Text(
-                    'Painter',
-                    style: TextStyle(fontSize: 8.0),
-                  ),
-                  initialValue: _cropLayerPainter,
-                  itemBuilder: (BuildContext context) {
-                    return <PopupMenuEntry<EditorCropLayerPainter>>[
-                      const PopupMenuItem<EditorCropLayerPainter>(
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.rounded_corner_sharp,
-                              color: Colors.blue,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text('Default'),
-                          ],
-                        ),
-                        value: EditorCropLayerPainter(),
-                      ),
-                      const PopupMenuDivider(),
-                      const PopupMenuItem<EditorCropLayerPainter>(
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.circle,
-                              color: Colors.blue,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text('Custom'),
-                          ],
-                        ),
-                        value: CustomEditorCropLayerPainter(),
-                      ),
-                      const PopupMenuDivider(),
-                      const PopupMenuItem<EditorCropLayerPainter>(
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              CupertinoIcons.circle,
-                              color: Colors.blue,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text('Circle'),
-                          ],
-                        ),
-                        value: CircleEditorCropLayerPainter(),
-                      ),
-                    ];
-                  },
-                  onSelected: (EditorCropLayerPainter value) {
-                    if (_cropLayerPainter != value) {
-                      setState(() {
-                        if (value is CircleEditorCropLayerPainter) {
-                          _aspectRatio = _aspectRatios[2];
-                        }
-                        _cropLayerPainter = value;
-                      });
-                    }
-                  },
-                ),
-                textColor: Colors.white,
-                onPressed: () {
-                  popupMenuKey.currentState!.showButtonMenu();
-                },
-              ),
-              FlatButtonWithIcon(
-                icon: const Icon(Icons.restore),
-                label: const Text(
-                  'Reset',
-                  style: TextStyle(fontSize: 10.0),
-                ),
-                textColor: Colors.white,
-                onPressed: () {
-                  editorKey.currentState!.reset();
-                },
-              ),
+              // FlatButtonWithIcon(
+              //   icon: const Icon(Icons.rounded_corner_sharp),
+              //   label: PopupMenuButton<EditorCropLayerPainter>(
+              //     key: popupMenuKey,
+              //     enabled: false,
+              //     offset: const Offset(100, -300),
+              //     child: const Text(
+              //       'Painter',
+              //       style: TextStyle(fontSize: 8.0),
+              //     ),
+              //     initialValue: _cropLayerPainter,
+              //     itemBuilder: (BuildContext context) {
+              //       return <PopupMenuEntry<EditorCropLayerPainter>>[
+              //         const PopupMenuItem<EditorCropLayerPainter>(
+              //           child: Row(
+              //             children: <Widget>[
+              //               Icon(
+              //                 Icons.rounded_corner_sharp,
+              //                 color: Colors.blue,
+              //               ),
+              //               SizedBox(
+              //                 width: 5,
+              //               ),
+              //               Text('Default'),
+              //             ],
+              //           ),
+              //           value: EditorCropLayerPainter(),
+              //         ),
+              //         const PopupMenuDivider(),
+              //         const PopupMenuItem<EditorCropLayerPainter>(
+              //           child: Row(
+              //             children: <Widget>[
+              //               Icon(
+              //                 Icons.circle,
+              //                 color: Colors.blue,
+              //               ),
+              //               SizedBox(
+              //                 width: 5,
+              //               ),
+              //               Text('Custom'),
+              //             ],
+              //           ),
+              //           value: CustomEditorCropLayerPainter(),
+              //         ),
+              //         const PopupMenuDivider(),
+              //         const PopupMenuItem<EditorCropLayerPainter>(
+              //           child: Row(
+              //             children: <Widget>[
+              //               Icon(
+              //                 CupertinoIcons.circle,
+              //                 color: Colors.blue,
+              //               ),
+              //               SizedBox(
+              //                 width: 5,
+              //               ),
+              //               Text('Circle'),
+              //             ],
+              //           ),
+              //           value: CircleEditorCropLayerPainter(),
+              //         ),
+              //       ];
+              //     },
+              //     onSelected: (EditorCropLayerPainter value) {
+              //       if (_cropLayerPainter != value) {
+              //         setState(() {
+              //           if (value is CircleEditorCropLayerPainter) {
+              //             _aspectRatio = _aspectRatios[2];
+              //           }
+              //           _cropLayerPainter = value;
+              //         });
+              //       }
+              //     },
+              //   ),
+              //   textColor: Colors.white,
+              //   onPressed: () {
+              //     popupMenuKey.currentState!.showButtonMenu();
+              //   },
+              // ),
+              // FlatButtonWithIcon(
+              //   icon: const Icon(Icons.restore),
+              //   label: const Text(
+              //     'Reset',
+              //     style: TextStyle(fontSize: 10.0),
+              //   ),
+              //   textColor: Colors.white,
+              //   onPressed: () {
+              //     editorKey.currentState!.reset();
+              //   },
+              // ),
             ],
           ),
         ),
       ),
     );
+  }
+
+
+ Uint8List? imageBytes;
+  Future<void> confirmAction() async {
+    try {
+
+      final EditImageInfo fileData = await cropImageDataWithNativeLibrary(
+          state: editorKey.currentState!);
+
+
+      setState(() {
+        imageBytes = fileData.data;
+      });
+      // final String? fileFath = await ImageSaver.save()
+      // 'extended_image_cropped_image.jpg', fileData.data!);
+      // showToast('save image : $fileFath');
+
+
+
+    } finally {
+
+    }
   }
 
   void _showCropDialog(BuildContext context) {

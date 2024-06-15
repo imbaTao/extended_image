@@ -1,3 +1,4 @@
+import 'package:example/pages/complex/image_editor_demo.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:extended_image_library/extended_image_library.dart';
 import 'package:ff_annotation_route_library/ff_annotation_route_library.dart';
@@ -28,23 +29,24 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       builder: (BuildContext c, Widget? w) {
-        w = Stack(
-          children: <Widget>[
-            Positioned.fill(child: w!),
-            if (kDebugMode) MemoryUsageView(),
-          ],
-        );
-        if (!kIsWeb) {
-          final MediaQueryData data = MediaQuery.of(c);
-          w = MediaQuery(
-            data: data.copyWith(
-              textScaler: TextScaler.noScaling,
-            ),
-            child: w,
-          );
-        }
+        // w = Stack(
+        //   children: <Widget>[
+        //     // Positioned.fill(child: w!),
+        //     ImageEditorDemo(),
+        //     // if (kDebugMode) MemoryUsageView(),
+        //   ],
+        // );
+        // if (!kIsWeb) {
+        //   final MediaQueryData data = MediaQuery.of(c);
+        //   w = MediaQuery(
+        //     data: data.copyWith(
+        //       textScaler: TextScaler.noScaling,
+        //     ),
+        //     // child: w,
+        //   );
+        // }
 
-        return w;
+        return SafeArea(child: Container(width:414,height: 600,child: ImageEditorDemo(),));
       },
       initialRoute: Routes.fluttercandiesMainpage,
       onGenerateRoute: (RouteSettings settings) {
